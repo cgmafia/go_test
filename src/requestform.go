@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// The main function to do GET & POST calls
 func hello(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.Error(w, "404 not found.", http.StatusNotFound)
@@ -18,7 +19,6 @@ func hello(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		http.ServeFile(w, r, "form.html")
 	case "POST":
-		// Call ParseForm() to parse the raw query and update r.PostForm and r.Form.
 		if err := r.ParseForm(); err != nil {
 			fmt.Fprintf(w, "ParseForm() err: %v", err)
 			return
@@ -34,6 +34,7 @@ func hello(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Generates Token
 func GenerateSecureToken(length int) string {
 	b := make([]byte, length)
 	if _, err := rand.Read(b); err != nil {
@@ -44,6 +45,7 @@ func GenerateSecureToken(length int) string {
 	return key
 }
 
+// This is to loop the timer non-stop
 func Timerloop() bool {
 	ticker := time.NewTicker(5 * time.Second)
 	c := make(chan struct{})
@@ -64,6 +66,7 @@ func Timerloop() bool {
 	return false
 }
 
+// Default error 404 page
 func Timeoutpage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Error 404: Timeout. Key expired")
 }
