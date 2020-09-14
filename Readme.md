@@ -24,4 +24,6 @@
 # What does it do
 
 * This script sends a request of POST while clicking submit
+*  Using Victor Springer's cache. This is a high performance Golang HTTP middleware for server-side application layer caching, ideal for REST APIs.
+* Cache span = 30 minutes
 * Shows the output via GET request

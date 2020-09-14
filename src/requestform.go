@@ -6,10 +6,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
+
+	cache "github.com/victorspringer/http-cache"
+	"github.com/victorspringer/http-cache/adapter/memory"
 )
 
-// The main function to do GET & POST calls
 func hello(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.Error(w, "404 not found.", http.StatusNotFound)
@@ -72,6 +75,28 @@ func Timeoutpage(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+
+	memcached, err := memory.NewAdapter(
+		memory.AdapterWithAlgorithm(memory.LRU),
+		memory.AdapterWithCapacity(10000000),
+	)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	cacheClient, err := cache.NewClient(
+		cache.ClientWithAdapter(memcached),
+		cache.ClientWithTTL(30*time.Minute),
+		cache.ClientWithRefreshKey("opn"),
+	)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	handler := http.HandlerFunc(hello)
+
 	go func() {
 		if is := Timerloop(); is == false {
 			// generate a unique token path
@@ -81,7 +106,8 @@ func main() {
 		}
 	}()
 
-	http.HandleFunc("/", hello)
+	// http.HandleFunc("/", hello)
+	http.Handle("/", cacheClient.Middleware(handler))
 	http.HandleFunc("/404", Timeoutpage)
 	fmt.Printf("Starting server for testing HTTP POST... \n")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
